@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Council Election</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+  font-family:Segoe UI;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container{
+  background:rgba(255,255,255,0.08);
+  padding:40px;
+  border-radius:20px;
+  backdrop-filter:blur(12px);
+  width:380px;
+}
+
+input,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border:none;
+  border-radius:8px;
+}
+
+button{
+  background:#10b981;
+  color:white;
+  cursor:pointer;
+}
+
+.switch-btn{
+  background:#1f2937;
+}
+
+h2,h3{
+  text-align:center;
+}
+
+.form{
+  display:none;
+}
+
+.active{
+  display:block;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h2>Student Election System</h2>
+
+<!-- Navigation Buttons -->
+<button class="switch-btn" onclick="showForm('voterLogin')">Voter Login</button>
+<button class="switch-btn" onclick="showForm('registerForm')">New Voter Registration</button>
+<button class="switch-btn" onclick="showForm('adminLogin')">Admin Login</button>
+
+<hr>
+
+<!-- 1️⃣ Voter Login -->
+<div id="voterLogin" class="form active">
+<h3>Voter Login</h3>
+<input id="vEmail" placeholder="Email">
+<input id="vPassword" type="password" placeholder="Password">
+<button onclick="voterLogin()">Login as Voter</button>
+</div>
+
+<!-- 2️⃣ Voter Registration -->
+<div id="registerForm" class="form">
+<h3>New Voter Registration</h3>
+<input id="rEmail" placeholder="Email">
+<input id="rPassword" type="password" placeholder="Password">
+<button onclick="registerVoter()">Register as Voter</button>
+</div>
+
+<!-- 3️⃣ Admin Login -->
+<div id="adminLogin" class="form">
+<h3>Admin Login</h3>
+<input id="aEmail" placeholder="Email">
+<input id="aPassword" type="password" placeholder="Password">
+<button onclick="adminLogin()">Login as Admin</button>
+</div>
+
+</div>
+
+<script>
+const { createClient } = supabase;
+const supabaseClient = createClient(
+  "https://zszelitgpvagfdhcruxd.supabase.co",
+  "sb_publishable_9d2_0rVg3l6Goi143thMqA_R2Gb1R9M"
+);
+
+function showForm(id){
+  document.querySelectorAll('.form').forEach(f=>f.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ===========================
+   VOTER REGISTRATION
+=========================== */
+async function registerVoter(){
+  const {error,data} = await supabaseClient.from('users').insert([{
+    email:rEmail.value,
+    password:rPassword.value,
+    role:'voter'
+  }]).select().single();
+
+  if(error){ alert("Email already exists"); return; }
+
+  // Create voter profile
+  await supabaseClient.from('voter_profiles').insert([{
+    user_id:data.id
+  }]);
+
+  alert("Voter Registered Successfully!");
+  showForm('voterLogin');
+}
+
+/* ===========================
+   VOTER LOGIN
+=========================== */
+async function voterLogin(){
+  const {data} = await supabaseClient.from('users')
+    .select('*')
+    .eq('email',vEmail.value)
+    .eq('password',vPassword.value)
+    .eq('role','voter')
+    .single();
+
+  if(!data){ alert("Invalid Voter Login"); return; }
+
+  sessionStorage.setItem("user",JSON.stringify(data));
+  window.location="Voter.html";
+}
+
+/* ===========================
+   ADMIN LOGIN
+=========================== */
+async function adminLogin(){
+  const {data} = await supabaseClient.from('users')
+    .select('*')
+    .eq('email',aEmail.value)
+    .eq('password',aPassword.value)
+    .eq('role','admin')
+    .single();
+
+  if(!data){ alert("Invalid Admin Login"); return; }
+
+  sessionStorage.setItem("user",JSON.stringify(data));
+  window.location="Admin.html";
+}
+</script>
+
+</body>
+</html>

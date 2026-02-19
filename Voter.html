@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Voter Panel</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:Segoe UI;background:#111827;color:white;margin:0;}
+header{background:#1f2937;padding:15px;display:flex;justify-content:space-between;}
+.card{background:#1e293b;padding:15px;margin:10px;border-radius:12px;}
+button{background:#10b981;border:none;padding:8px;border-radius:8px;color:white;}
+</style>
+</head>
+<body>
+
+<header>
+<h2>Voter Dashboard</h2>
+<button onclick="logout()">Logout</button>
+</header>
+
+<h3 style="padding-left:10px;">Candidates</h3>
+<div id="candidateList"></div>
+
+<h3 style="padding-left:10px;">My Vote</h3>
+<div id="myVote"></div>
+
+<script>
+const { createClient } = supabase;
+const supabaseClient=createClient(
+  "https://zszelitgpvagfdhcruxd.supabase.co",
+  "sb_publishable_9d2_0rVg3l6Goi143thMqA_R2Gb1R9M"
+);
+
+const user=JSON.parse(sessionStorage.getItem("user"));
+let profileId=null;
+
+async function getProfile(){
+  const {data}=await supabaseClient.from('voter_profiles')
+    .select('*').eq('user_id',user.id).single();
+  profileId=data.id;
+}
+
+async function loadCandidates(){
+  const {data}=await supabaseClient.from('candidates').select('*');
+  const {data:setting}=await supabaseClient.from('settings').select('*').single();
+
+  candidateList.innerHTML="";
+  data.forEach(c=>{
+    candidateList.innerHTML+=`
+      <div class="card">
+        <h3>${c.name}</h3>
+        <p>${c.position}</p>
+        ${setting.election_active?
+        `<button onclick="vote('${c.id}')">Vote</button>`:
+        `<p>Election Closed</p>`}
+      </div>`;
+  });
+}
+
+async function vote(id){
+  const {error}=await supabaseClient.from('votes')
+    .insert([{voter_id:profileId,candidate_id:id}]);
+
+  if(error) alert("Already Voted!");
+  else alert("Vote Cast Successfully!");
+  loadMyVote();
+}
+
+async function loadMyVote(){
+  const {data}=await supabaseClient.from('votes')
+    .select('*, candidates(name)')
+    .eq('voter_id',profileId).single();
+
+  if(data)
+    myVote.innerHTML=`You voted for <b>${data.candidates.name}</b>`;
+}
+
+function logout(){
+  sessionStorage.clear();
+  window.location="index.html";
+}
+
+getProfile().then(()=>{
+  loadCandidates();
+  loadMyVote();
+});
+</script>
+</body>
+</html>
