@@ -2,187 +2,119 @@
 <html>
 <head>
 <title>Admin Panel</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  font-family:Segoe UI;
-  background:#0f172a;
-  color:white;
-}
-
-/* Sidebar */
-.sidebar{
-  width:230px;
-  height:100vh;
-  position:fixed;
-  background:#111827;
-  padding:20px;
-}
-
-.sidebar h2{text-align:center;margin-bottom:20px;}
-.sidebar button{
-  width:100%;
-  margin:10px 0;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  background:#1f2937;
-  color:white;
-  font-weight:bold;
-}
-
-/* Main */
-.main{
-  margin-left:250px;
-  padding:30px;
-}
-
-.stat{
-  background:#1f2937;
-  padding:20px;
-  border-radius:15px;
-  margin:10px 0;
-}
-
-input{
-  padding:10px;
-  border:none;
-  border-radius:8px;
-  margin:5px 0;
-  width:100%;
-}
-
-#winnerSection{
-  margin-bottom:20px;
-  font-size:18px;
-}
-
-/* Charts layout */
-.chart-container{
-  display:flex;
-  gap:20px;
-  flex-wrap:wrap;
-  justify-content:space-between;
-}
-
-.chart-box{
-  background:#1e293b;
-  padding:15px;
-  border-radius:12px;
-  flex:1 1 48%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-.chart-box canvas{
-  width:100% !important;
-  max-width:100%;
-  height:300px !important;
-}
-
-/* Candidate list */
-.candidate-card{
-  background:#1e293b;
-  padding:12px;
-  border-radius:12px;
-  margin:10px 0;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.candidate-card input{
-  width:40%;
-  margin:0 5px;
-}
-
-.candidate-card button{
-  margin-left:5px;
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-.edit-btn{background:#3b82f6;color:white;}
-.save-btn{background:#10b981;color:white;}
-.delete-btn{background:#ef4444;color:white;}
-
-/* Mobile */
-@media(max-width:768px){
-  .main{
-    margin-left:0;
-    padding:15px;
-  }
-  .sidebar{
-    display:none;
-  }
-  .chart-box{
-    flex:1 1 100%;
-  }
-  .candidate-card{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-  .candidate-card input{
-    width:95%;
-  }
-}
+*{margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif;}
+body{background:#f8fafc; color:#1e293b;}
+.university-header{background:#0f172a; color:white; padding:20px; text-align:center;}
+.university-header h1{margin:0; font-size:24px;}
+.main-wrapper{max-width:1100px; margin:40px auto; display:flex; flex-direction:column; gap:25px;}
+.stats-container{display:flex; gap:20px; flex-wrap:wrap;}
+.stat-card{flex:1 1 200px; background:white; border-radius:8px; padding:20px; box-shadow:0 8px 20px rgba(0,0,0,0.05); text-align:center;}
+.stat-card h3{font-size:28px; color:#7c2d12;}
+.stat-card p{font-size:14px; color:#64748b;}
+.section{background:white; border-radius:8px; padding:25px; box-shadow:0 8px 20px rgba(0,0,0,0.05);}
+.input-group{margin-bottom:15px;}
+.input-group label{font-size:13px; font-weight:500; display:block; margin-bottom:5px;}
+.input-group input, .input-group select{width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px;}
+.input-group input:focus, .input-group select:focus{outline:none; border-color:#7c2d12; box-shadow:0 0 0 2px rgba(124,45,18,0.1);}
+.primary-btn{padding:11px; background:#7c2d12; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500; margin-top:5px;}
+.primary-btn:hover{background:#9a3412;}
+.admin-btn{padding:11px; background:#1e293b; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500; margin-top:5px;}
+.admin-btn:hover{background:#0f172a;}
+.table-wrapper{overflow-x:auto; margin-top:15px;}
+table{width:100%; border-collapse:collapse;}
+table th, table td{padding:10px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:14px;}
+table th{color:#7c2d12;}
+.action-btn{padding:5px 10px; margin-right:5px; border:none; border-radius:5px; cursor:pointer; font-weight:500;}
+.edit-btn{background:#facc15; color:#1e293b;}
+.delete-btn{background:#ef4444; color:white;}
+.chart-container{display:flex; gap:20px; flex-wrap:wrap; justify-content:space-between;}
+.chart-box{flex:1 1 48%; background:white; padding:15px; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.05); text-align:center;}
+.chart-box canvas{width:100% !important; height:300px !important;}
+#winnerSection{font-size:16px; margin-bottom:15px;}
+.footer{text-align:center; padding:20px; font-size:13px; color:#64748b;}
+@media(max-width:768px){.chart-box{flex:1 1 100%;} .stats-container{flex-direction:column;}}
 </style>
 </head>
 
 <body>
+<div class="university-header"><h1>Admin Panel</h1></div>
+<div class="main-wrapper">
 
-<div class="sidebar">
-<h2>Admin Panel</h2>
-<button onclick="exportPDF()">Export Results (PDF)</button>
-<button onclick="resetElection()">Reset Election</button>
-<button onclick="logout()">Logout</button>
-</div>
-
-<div class="main">
-
-<h1>Dashboard</h1>
-
-<div id="winnerSection"></div>
-
-<div class="stat">
-<h3 id="totalVotes">0</h3>
-<p>Total Votes</p>
-</div>
-
-<h3>Add Candidate</h3>
-<input id="cname" placeholder="Name">
-<input id="position" placeholder="Position">
-<button onclick="addCandidate()">Add Candidate</button>
-
-<h3>Candidate List (Edit/Delete)</h3>
-<div id="candidateList"></div>
-
-<h3>Live Results</h3>
-<div class="chart-container">
-  <div class="chart-box">
-    <h4>Pie Chart</h4>
-    <canvas id="pieChart"></canvas>
+  <!-- Stats -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <h3 id="totalVotes">0</h3>
+      <p>Total Votes</p>
+    </div>
   </div>
 
-  <div class="chart-box">
-    <h4>Bar Graph</h4>
-    <canvas id="barChart"></canvas>
+  <!-- Winners -->
+  <div id="winnerSection" class="section"></div>
+
+  <!-- Candidate Section -->
+  <div class="section">
+    <h3>Manage Candidates</h3>
+    <div class="input-group"><label>Name</label><input type="text" id="cName"></div>
+    <div class="input-group"><label>Roll Number</label><input type="text" id="cRoll"></div>
+    <div class="input-group"><label>Department</label><input type="text" id="cDept"></div>
+    <div class="input-group"><label>Position</label>
+      <select id="cPosition">
+        <option value="Student Council">Student Council</option>
+        <option value="Student President">Student President</option>
+        <option value="Student Vice President">Student Vice President</option>
+        <option value="Student Representative">Student Representative</option>
+        <option value="Council Member">Council Member</option>
+      </select>
+    </div>
+    <button class="primary-btn" onclick="addCandidate()">Add Candidate</button>
+    <div class="table-wrapper">
+      <table id="candidatesTable">
+        <thead><tr><th>Name</th><th>Roll</th><th>Dept</th><th>Position</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-</div>
+
+  <!-- Election Section -->
+  <div class="section">
+    <h3>Manage Elections</h3>
+    <div class="input-group"><label>Candidate</label>
+      <select id="eCandidate"></select>
+    </div>
+    <div class="input-group"><label>Roll Number</label><input type="text" id="eRoll"></div>
+    <div class="input-group"><label>Department</label><input type="text" id="eDept"></div>
+    <div class="input-group"><label>Position</label><input type="text" id="ePosition"></div>
+    <div class="input-group"><label>Start Date & Time</label><input type="datetime-local" id="eStart"></div>
+    <div class="input-group"><label>End Date & Time</label><input type="datetime-local" id="eEnd"></div>
+    <button class="primary-btn" onclick="addElection()">Add Election</button>
+    <div class="table-wrapper">
+      <table id="electionTable">
+        <thead><tr><th>Candidate</th><th>Roll</th><th>Dept</th><th>Position</th><th>Start</th><th>End</th><th>Votes</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-container">
+    <div class="chart-box"><h4>Pie Chart</h4><canvas id="pieChart"></canvas></div>
+    <div class="chart-box"><h4>Bar Chart</h4><canvas id="barChart"></canvas></div>
+  </div>
+
+  <!-- Admin Buttons -->
+  <div class="section">
+    <button class="admin-btn" onclick="resetElection()">Reset Election</button>
+   <button class="admin-btn" onclick="logout()">Logout</button>
+  </div>
 
 </div>
+<div class="footer">&copy; 2026 University Election System</div>
 
 <script>
 const { createClient } = supabase;
@@ -191,222 +123,129 @@ const supabaseClient = createClient(
   "sb_publishable_9d2_0rVg3l6Goi143thMqA_R2Gb1R9M"
 );
 
-let pieChart, barChart;
-let candidatesData=[], votesData=[];
+let candidates=[], elections=[], votesData=[], pieChart, barChart;
 
-/* ================= LOAD DASHBOARD ================= */
-async function loadDashboard(){
-  const {data:candidates} = await supabaseClient.from('candidates').select('*');
-  const {data:votes} = await supabaseClient.from('votes').select('*');
+// ===== LOAD CANDIDATES =====
+async function loadCandidates(){
+  const { data, error } = await supabaseClient.from("candidates").select("*");
+  if(error) { alert(error.message); return; }
+  candidates = data;
+  const tbody = document.querySelector("#candidatesTable tbody");
+  const eSelect = document.getElementById("eCandidate");
+  tbody.innerHTML=""; eSelect.innerHTML="<option value=''>Select Candidate</option>";
+  data.forEach(c=>{
+    tbody.innerHTML+=`<tr>
+      <td>${c.candidate_name}</td><td>${c.rollno}</td><td>${c.department}</td><td>${c.position}</td>
+      <td><button class="action-btn delete-btn" onclick="deleteCandidate('${c.id}')">Delete</button></td>
+    </tr>`;
+    eSelect.innerHTML+=`<option value="${c.id}">${c.candidate_name}</option>`;
+  });
+}
 
-  candidatesData = candidates;
+// ===== LOAD ELECTIONS =====
+async function loadElections(){
+  const { data, error } = await supabaseClient.from("election").select("*");
+  if(error) { alert(error.message); return; }
+  elections = data;
+  const tbody = document.querySelector("#electionTable tbody");
+  tbody.innerHTML="";
+  data.forEach(e=>{
+    const candidateName = candidates.find(c=>c.id===e.candidate_id)?.candidate_name||"Unknown";
+    tbody.innerHTML+=`<tr>
+      <td>${candidateName}</td><td>${e.rollno}</td><td>${e.department}</td><td>${e.position}</td>
+      <td>${e.start_datetime ? new Date(e.start_datetime).toLocaleString() : ""}</td>
+      <td>${e.end_datetime ? new Date(e.end_datetime).toLocaleString() : ""}</td>
+      <td>${e.votes || 0}</td>
+      <td><button class="action-btn delete-btn" onclick="deleteElection('${e.id}')">Delete</button></td>
+    </tr>`;
+  });
+  updateCharts();
+}
+
+// ===== ADD / DELETE CANDIDATE =====
+async function addCandidate(){
+  const name=cName.value.trim(), roll=cRoll.value.trim(), dept=cDept.value.trim(), pos=cPosition.value;
+  if(!name||!roll||!dept||!pos){ alert("All fields required"); return; }
+  await supabaseClient.from("candidates").insert([{candidate_name:name,rollno:roll,department:dept,position:pos}]);
+  cName.value=cRoll.value=cDept.value=""; loadCandidates(); loadElections();
+}
+async function deleteCandidate(id){ await supabaseClient.from("candidates").delete().eq("id",id); loadCandidates(); loadElections(); }
+
+// ===== ADD / DELETE ELECTION =====
+async function addElection(){
+  const candidate_id=eCandidate.value, roll=eRoll.value, dept=eDept.value, pos=ePosition.value, start=eStart.value, end=eEnd.value;
+  if(!candidate_id||!roll||!dept||!pos||!start||!end){ alert("All fields required"); return; }
+  await supabaseClient.from("election").insert([{candidate_id,rollno:roll,department:dept,position:pos,start_datetime:start,end_datetime:end,votes:0}]);
+  eRoll.value=eDept.value=ePosition.value=eStart.value=eEnd.value=""; loadElections();
+}
+async function deleteElection(id){ await supabaseClient.from("election").delete().eq("id",id); loadElections(); }
+
+// ===== VOTES & CHARTS =====
+async function updateCharts(){
+  const { data:votes } = await supabaseClient.from("votes").select("*");
   votesData = votes;
+  document.getElementById("totalVotes").innerText = votes.length;
 
-  totalVotes.innerText = votes.length;
-
-  renderCharts(candidates,votes);
-  calculateWinners(candidates,votes);
-  renderCandidateList(candidates);
-}
-
-/* ================= MULTI-POSITION WINNERS ================= */
-function calculateWinners(candidates,votes){
+  // Count votes per candidate
   let voteCount={};
-  votes.forEach(v=>{
-    voteCount[v.candidate_id]=(voteCount[v.candidate_id]||0)+1;
-  });
+  votes.forEach(v=>{ const e=elections.find(el=>el.id===v.election_id); if(e) voteCount[e.candidate_id]=(voteCount[e.candidate_id]||0)+1; });
 
-  let grouped={};
+  // Render winner section
+  let html="<h3>🏆 Winners</h3>";
   candidates.forEach(c=>{
-    if(!grouped[c.position]) grouped[c.position]=[];
-    grouped[c.position].push(c);
+    const count=voteCount[c.id]||0;
+    html+=`<p><b>${c.candidate_name}</b> → ${count} votes</p>`;
   });
+  document.getElementById("winnerSection").innerHTML=html;
 
-  let html="<h3>🏆 Winners Per Position</h3>";
-
-  for(let pos in grouped){
-    let max=0;
-    let winner="No Votes";
-
-    grouped[pos].forEach(c=>{
-      let count=voteCount[c.id]||0;
-      if(count>max){
-        max=count;
-        winner=c.name+" ("+count+" votes)";
-      }
-    });
-
-    html+=`<p><b>${pos}</b> → ${winner}</p>`;
-  }
-
-  winnerSection.innerHTML=html;
-}
-
-/* ================= RENDER BOTH CHARTS ================= */
-function renderCharts(candidates,votes){
-  let count={};
-  votes.forEach(v=>{
-    count[v.candidate_id]=(count[v.candidate_id]||0)+1;
-  });
-
-  const labels = candidates.map(c=>c.name);
-  const data = candidates.map(c=>count[c.id]||0);
+  // Chart Data
+  const labels=candidates.map(c=>c.candidate_name);
+  const data=candidates.map(c=>voteCount[c.id]||0);
 
   if(pieChart) pieChart.destroy();
   if(barChart) barChart.destroy();
 
-  pieChart = new Chart(document.getElementById('pieChart'), {
-    type: 'pie',
-    data: { labels, datasets: [{ data, backgroundColor: ["#3b82f6","#10b981","#ef4444","#f59e0b","#8b5cf6","#ec4899"] }] },
-    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
-  });
-
-  barChart = new Chart(document.getElementById('barChart'), {
-    type: 'bar',
-    data: { labels, datasets:[{label:"Votes", data, backgroundColor:"#3b82f6"}] },
-    options: { responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}} }
-  });
+  pieChart = new Chart(document.getElementById('pieChart'), { type:'pie', data:{labels,datasets:[{data,backgroundColor:["#3b82f6","#10b981","#ef4444","#f59e0b","#8b5cf6","#ec4899"]}] }, options:{responsive:true,plugins:{legend:{position:'bottom'}}} });
+  barChart = new Chart(document.getElementById('barChart'), { type:'bar', data:{labels,datasets:[{label:"Votes",data,backgroundColor:"#3b82f6"}]}, options:{responsive:true,scales:{y:{beginAtZero:true}},plugins:{legend:{display:false}}} });
 }
 
-/* ================= CANDIDATE CRUD ================= */
-function renderCandidateList(candidates){
-  const container = document.getElementById("candidateList");
-  container.innerHTML="";
-  candidates.forEach(c=>{
-    const div = document.createElement("div");
-    div.className="candidate-card";
-    div.innerHTML=`
-      <input type="text" value="${c.name}" disabled>
-      <input type="text" value="${c.position}" disabled>
-      <div>
-        <button class="edit-btn" onclick="editCandidate('${c.id}',this)">Edit</button>
-        <button class="save-btn" onclick="saveCandidate('${c.id}',this)" style="display:none">Save</button>
-        <button class="delete-btn" onclick="deleteCandidate('${c.id}')">Delete</button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-}
+// ===== RESET / PDF / LOGOUT =====
+async function resetElection() {
+  if (!confirm("Are you sure you want to reset the election? All votes will be deleted!")) return;
 
-function editCandidate(id,btn){
-  const parent = btn.closest(".candidate-card");
-  const inputs = parent.querySelectorAll("input");
-  inputs.forEach(i=>i.disabled=false);
-  parent.querySelector(".save-btn").style.display="inline-block";
-  btn.style.display="none";
-}
-
-async function saveCandidate(id,btn){
-  const parent = btn.closest(".candidate-card");
-  const inputs = parent.querySelectorAll("input");
-  const name = inputs[0].value.trim();
-  const position = inputs[1].value.trim();
-  if(!name || !position){ alert("Enter Name and Position"); return; }
-
-  await supabaseClient.from('candidates').update({name,position}).eq('id',id);
-
-  inputs.forEach(i=>i.disabled=true);
-  btn.style.display="none";
-  parent.querySelector(".edit-btn").style.display="inline-block";
-  loadDashboard();
-}
-
-async function deleteCandidate(id){
-  if(confirm("Are you sure you want to delete this candidate?")){
-    await supabaseClient.from('candidates').delete().eq('id',id);
-    loadDashboard();
-  }
-}
-
-/* ================= ADD CANDIDATE ================= */
-async function addCandidate(){
-  if(!cname.value || !position.value){ alert("Enter Name and Position"); return; }
-  await supabaseClient.from('candidates').insert([{name:cname.value,position:position.value}]);
-  cname.value=""; position.value="";
-  loadDashboard();
-}
-
-/* ================= RESET ELECTION ================= */
-async function resetElection(){
-  if(confirm("Are you sure you want to reset the election? All votes will be deleted!")){
-    // Delete all votes by using a condition that matches all valid UUIDs
-    const { error } = await supabaseClient
-      .from('votes')
+  try {
+    // Delete all votes
+    const { error: delError } = await supabaseClient
+      .from("votes")
       .delete()
-      .gt('id', '00000000-0000-0000-0000-000000000000');
+      .not('id', 'is', null); // matches all rows safely
 
-    if(error){
-      alert("Error resetting election: " + error.message);
-    } else {
-      alert("Election reset successfully!");
-      loadDashboard();
-    }
+    if (delError) throw delError;
+
+    // Reset votes count in election table
+    const { error: updateError } = await supabaseClient
+      .from("election")
+      .update({ votes: 0 })
+      .not('id', 'is', null); // matches all rows safely
+
+    if (updateError) throw updateError;
+
+    alert("All votes have been deleted and elections reset!");
+    
+    // Reload candidates, elections, and charts
+    await loadCandidates();
+    await loadElections();
+    updateCharts();
+
+  } catch (err) {
+    alert("Error resetting election: " + err.message);
   }
 }
+ 
+function logout(){ sessionStorage.clear(); window.location="index.html"; }
 
-
-
-/* ================= EXPORT PDF ================= */
-async function exportPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  doc.setFontSize(18);
-  doc.text("Student Council Election Results",20,20);
-
-  doc.setFontSize(12);
-  doc.text("Date: "+new Date().toLocaleString(),20,30);
-
-  let y=40;
-
-  let voteCount={};
-  votesData.forEach(v=>{
-    voteCount[v.candidate_id]=(voteCount[v.candidate_id]||0)+1;
-  });
-
-  let grouped={};
-  candidatesData.forEach(c=>{
-    if(!grouped[c.position]) grouped[c.position]=[];
-    grouped[c.position].push(c);
-  });
-
-  doc.text("Winners Per Position:",20,y);
-  y+=10;
-
-  for(let pos in grouped){
-    let max=0;
-    let winner="No Votes";
-    grouped[pos].forEach(c=>{
-      let count=voteCount[c.id]||0;
-      if(count>max){
-        max=count;
-        winner=c.name+" ("+count+" votes)";
-      }
-    });
-    doc.text(pos+" → "+winner,20,y);
-    y+=8;
-  }
-
-  // Pie Chart
-  const pieImg = document.getElementById("pieChart").toDataURL("image/png");
-  doc.addImage(pieImg,"PNG",15,y+5,80,60);
-
-  // Bar Chart
-  const barImg = document.getElementById("barChart").toDataURL("image/png");
-  doc.addImage(barImg,"PNG",110,y+5,80,60);
-
-  doc.save("Election_Results.pdf");
-}
-
-/* ================= LOGOUT ================= */
-function logout(){
-  sessionStorage.clear();
-  window.location="index.html";
-}
-
-/* Auto Refresh Dashboard every 5 seconds */
-setInterval(loadDashboard,5000);
-loadDashboard();
+// ===== INIT =====
+window.onload = async()=>{ await loadCandidates(); await loadElections(); updateCharts(); }
 </script>
 </body>
 </html>

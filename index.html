@@ -1,162 +1,398 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Student Council Election</title>
+<meta charset="UTF-8">
+<title>University Election Portal</title>
+
+<!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Font Awesome for eye icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+
 <style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
 body{
-  font-family:Segoe UI;
-  background:linear-gradient(135deg,#0f172a,#1e293b);
+  background:#f8fafc;
+  color:#1e293b;
+}
+
+/* ================= HEADER ================= */
+.university-header{
+  background:#0f172a;
   color:white;
+  padding:20px 40px;
+}
+.header-inner{
+  max-width:1100px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+}
+.logo-area{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.logo-icon{
+  font-size:30px;
+}
+.uni-name{
+  font-size:18px;
+  font-weight:600;
+}
+.uni-sub{
+  font-size:13px;
+  opacity:0.8;
+}
+
+/* ================= HERO ================= */
+.hero-section{
+  text-align:center;
+  padding:50px 20px;
+  background:white;
+  border-bottom:1px solid #e2e8f0;
+}
+.hero-section h1{
+  font-size:32px;
+  font-family:Georgia, serif;
+  margin-bottom:10px;
+}
+.hero-section p{
+  color:#64748b;
+  font-size:15px;
+}
+
+/* ================= MAIN ================= */
+.main-wrapper{
   display:flex;
   justify-content:center;
-  align-items:center;
-  height:100vh;
+  padding:60px 20px;
 }
-
-.container{
-  background:rgba(255,255,255,0.08);
-  padding:40px;
-  border-radius:20px;
-  backdrop-filter:blur(12px);
-  width:380px;
-}
-
-input,button{
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-  border:none;
+.election-card{
+  width:420px;
+  background:white;
   border-radius:8px;
+  padding:35px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  border-top:4px solid #7c2d12;
 }
 
-button{
-  background:#10b981;
-  color:white;
-  cursor:pointer;
+/* ================= TABS ================= */
+.tabs{
+  display:flex;
+  margin-bottom:25px;
+  border-bottom:1px solid #e2e8f0;
 }
-
-.switch-btn{
-  background:#1f2937;
-}
-
-h2,h3{
+.tab{
+  flex:1;
   text-align:center;
+  padding:10px;
+  cursor:pointer;
+  font-size:14px;
+  color:#64748b;
+  transition:0.2s;
+}
+.tab.active{
+  color:#7c2d12;
+  border-bottom:2px solid #7c2d12;
+  font-weight:600;
 }
 
+/* ================= FORMS ================= */
 .form{
   display:none;
 }
-
-.active{
+.form.active{
   display:block;
+}
+.input-group{
+  margin-bottom:18px;
+}
+.input-group label{
+  font-size:13px;
+  font-weight:500;
+  display:block;
+  margin-bottom:6px;
+}
+.input-group input{
+  width:100%;
+  padding:10px;
+  border:1px solid #cbd5e1;
+  border-radius:6px;
+  font-size:14px;
+  transition:0.3s;
+}
+.input-group input:focus{
+  outline:none;
+  border-color:#7c2d12;
+  box-shadow: 0 0 0 2px rgba(124,45,18,0.1);
+}
+
+/* ================= PASSWORD TOGGLE ================= */
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 70%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #64748b;
+  font-size: 18px;
+  transition: color 0.2s;
+}
+.toggle-password:hover {
+  color: #7c2d12;
+}
+
+/* ================= BUTTONS ================= */
+.primary-btn{
+  width:100%;
+  padding:11px;
+  background:#7c2d12;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:500;
+  transition:0.3s;
+}
+.primary-btn:hover{
+  background:#9a3412;
+}
+.admin-btn{
+  width:100%;
+  padding:11px;
+  background:#1e293b;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:500;
+}
+.admin-btn:hover{
+  background:#0f172a;
+}
+
+/* ================= FOOTER ================= */
+.footer{
+  text-align:center;
+  padding:25px;
+  font-size:13px;
+  color:#64748b;
+  border-top:1px solid #e2e8f0;
+}
+
+@media(max-width:480px){
+  .election-card{
+    width:100%;
+  }
 }
 </style>
 </head>
+
 <body>
 
-<div class="container">
+<!-- ================= HEADER ================= -->
+<header class="university-header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-icon">🎓</div>
+      <div>
+        <div class="uni-name">College Election Commission</div>
+        <div class="uni-sub">Student Council Elections 2026</div>
+      </div>
+    </div>
+  </div>
+</header>
 
-<h2>Student Election System</h2>
+<!-- ================= HERO ================= -->
+<section class="hero-section">
+  <h1>Official Voting Portal</h1>
+  <p>Ensuring Integrity • Transparency • Student Representation</p>
+</section>
 
-<!-- Navigation Buttons -->
-<button class="switch-btn" onclick="showForm('voterLogin')">Voter Login</button>
-<button class="switch-btn" onclick="showForm('registerForm')">New Voter Registration</button>
-<button class="switch-btn" onclick="showForm('adminLogin')">Admin Login</button>
+<!-- ================= LOGIN CARD ================= -->
+<div class="main-wrapper">
+  <div class="election-card">
 
-<hr>
+    <div class="tabs">
+      <div class="tab active" onclick="showForm('voterLogin',this)">Voter Login</div>
+      <div class="tab" onclick="showForm('registerForm',this)">Register</div>
+      <div class="tab" onclick="showForm('adminLogin',this)">Admin</div>
+    </div>
 
-<!-- 1️⃣ Voter Login -->
-<div id="voterLogin" class="form active">
-<h3>Voter Login</h3>
-<input id="vEmail" placeholder="Email">
-<input id="vPassword" type="password" placeholder="Password">
-<button onclick="voterLogin()">Login as Voter</button>
+    <!-- Voter Login -->
+    <div id="voterLogin" class="form active">
+      <div class="input-group">
+        <label>Email Address</label>
+        <input id="vEmail" type="email">
+      </div>
+      <div class="input-group" style="position:relative">
+        <label>Password</label>
+        <input id="vPassword" type="password">
+        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('vPassword', this)"></i>
+      </div>
+      <button class="primary-btn" onclick="voterLogin()">Login as Voter</button>
+    </div>
+
+    <!-- Register -->
+    <div id="registerForm" class="form">
+      <div class="input-group">
+        <label>Full Name</label>
+        <input id="rName" type="text">
+      </div>
+      <div class="input-group">
+        <label>Roll Number</label>
+        <input id="rRoll" type="text">
+      </div>
+      <div class="input-group">
+        <label>Department</label>
+        <input id="rDept" type="text">
+      </div>
+      <div class="input-group">
+        <label>Email Address</label>
+        <input id="rEmail" type="email">
+      </div>
+      <div class="input-group" style="position:relative">
+        <label>Password</label>
+        <input id="rPassword" type="password">
+        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('rPassword', this)"></i>
+      </div>
+      <div class="input-group" style="position:relative">
+        <label>Confirm Password</label>
+        <input id="rConfirmPassword" type="password">
+        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('rConfirmPassword', this)"></i>
+      </div>
+      <button class="primary-btn" onclick="registerVoter()">Register</button>
+    </div>
+
+    <!-- Admin -->
+    <div id="adminLogin" class="form">
+      <div class="input-group">
+        <label>Admin Email</label>
+        <input id="aEmail" type="email">
+      </div>
+      <div class="input-group" style="position:relative">
+        <label>Password</label>
+        <input id="aPassword" type="password">
+        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('aPassword', this)"></i>
+      </div>
+      <button class="admin-btn" onclick="adminLogin()">Login as Admin</button>
+    </div>
+
+  </div>
 </div>
 
-<!-- 2️⃣ Voter Registration -->
-<div id="registerForm" class="form">
-<h3>New Voter Registration</h3>
-<input id="rEmail" placeholder="Email">
-<input id="rPassword" type="password" placeholder="Password">
-<button onclick="registerVoter()">Register as Voter</button>
-</div>
+<!-- ================= FOOTER ================= -->
+<footer class="footer">
+  © 2026 College Election Commission | All Rights Reserved <br>
+  🔐 Secure Digital Voting System
+</footer>
 
-<!-- 3️⃣ Admin Login -->
-<div id="adminLogin" class="form">
-<h3>Admin Login</h3>
-<input id="aEmail" placeholder="Email">
-<input id="aPassword" type="password" placeholder="Password">
-<button onclick="adminLogin()">Login as Admin</button>
-</div>
-
-</div>
-
+<!-- ================= SUPABASE SCRIPT ================= -->
 <script>
 const { createClient } = supabase;
+
 const supabaseClient = createClient(
   "https://zszelitgpvagfdhcruxd.supabase.co",
   "sb_publishable_9d2_0rVg3l6Goi143thMqA_R2Gb1R9M"
 );
 
-function showForm(id){
+// Tab switching
+function showForm(id,el){
   document.querySelectorAll('.form').forEach(f=>f.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
 }
 
-/* ===========================
-   VOTER REGISTRATION
-=========================== */
-async function registerVoter(){
-  const {error,data} = await supabaseClient.from('users').insert([{
-    email:rEmail.value,
-    password:rPassword.value,
-    role:'voter'
-  }]).select().single();
-
-  if(error){ alert("Email already exists"); return; }
-
-  // Create voter profile
-  await supabaseClient.from('voter_profiles').insert([{
-    user_id:data.id
-  }]);
-
-  alert("Voter Registered Successfully!");
-  showForm('voterLogin');
+// Toggle password visibility with Font Awesome
+function togglePassword(inputId, icon){
+  const input = document.getElementById(inputId);
+  if(input.type === "password"){
+    input.type = "text";
+    icon.classList.remove("fa-eye-slash");
+    icon.classList.add("fa-eye");
+  }else{
+    input.type = "password";
+    icon.classList.remove("fa-eye");
+    icon.classList.add("fa-eye-slash");
+  }
 }
 
-/* ===========================
-   VOTER LOGIN
-=========================== */
-async function voterLogin(){
-  const {data} = await supabaseClient.from('users')
-    .select('*')
-    .eq('email',vEmail.value)
-    .eq('password',vPassword.value)
-    .eq('role','voter')
+// Voter Registration
+async function registerVoter() {
+  const name = rName.value.trim();
+  const roll = rRoll.value.trim();
+  const dept = rDept.value.trim();
+  const email = rEmail.value.trim();
+  const password = rPassword.value;
+  const confirmPassword = rConfirmPassword.value;
+
+  if (!name || !roll || !dept || !email || !password || !confirmPassword) {
+    alert("Please fill all fields");
+    return;
+  }
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+  if (password.length < 6) {
+    alert("Password must be at least 6 characters");
+    return;
+  }
+
+  const { error } = await supabaseClient.from("voters").insert([
+    { name, rollno: roll, department: dept, email, password }
+  ]);
+
+  if (error) { alert("Registration failed: "+error.message); return; }
+
+  alert("Registration Successful!");
+  showForm("voterLogin", document.querySelector('.tab'));
+}
+
+// Voter Login
+async function voterLogin() {
+  const email = vEmail.value.trim();
+  const password = vPassword.value;
+
+  const { data } = await supabaseClient
+    .from("voters")
+    .select("*")
+    .eq("email", email)
+    .eq("password", password)
     .single();
 
-  if(!data){ alert("Invalid Voter Login"); return; }
+  if (!data) { alert("Invalid Voter Login"); return; }
 
-  sessionStorage.setItem("user",JSON.stringify(data));
+  sessionStorage.setItem("user", JSON.stringify(data));
   window.location="Voter.html";
 }
 
-/* ===========================
-   ADMIN LOGIN
-=========================== */
-async function adminLogin(){
-  const {data} = await supabaseClient.from('users')
-    .select('*')
-    .eq('email',aEmail.value)
-    .eq('password',aPassword.value)
-    .eq('role','admin')
+// Admin Login
+async function adminLogin() {
+  const email = aEmail.value.trim();
+  const password = aPassword.value;
+
+  const { data } = await supabaseClient
+    .from("admins")
+    .select("*")
+    .eq("email", email)
+    .eq("password", password)
     .single();
 
-  if(!data){ alert("Invalid Admin Login"); return; }
+  if (!data) { alert("Invalid Admin Login"); return; }
 
-  sessionStorage.setItem("user",JSON.stringify(data));
+  sessionStorage.setItem("admin", JSON.stringify(data));
   window.location="Admin.html";
 }
 </script>
