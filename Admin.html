@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    *{margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif;}
+    body{background:#f8fafc; color:#1e293b;}
+    .university-header{background:#0f172a; color:white; padding:20px; text-align:center;}
+    .university-header h1{margin:0; font-size:24px;}
+    .main-wrapper{max-width:1100px; margin:40px auto; display:flex; flex-direction:column; gap:25px;}
+    .stats-container{display:flex; gap:20px; flex-wrap:wrap;}
+    .stat-card{flex:1 1 200px; background:white; border-radius:8px; padding:20px; box-shadow:0 8px 20px rgba(0,0,0,0.05); text-align:center;}
+    .stat-card h3{font-size:28px; color:#7c2d12;}
+    .stat-card p{font-size:14px; color:#64748b;}
+    .section{background:white; border-radius:8px; padding:25px; box-shadow:0 8px 20px rgba(0,0,0,0.05);}
+    .input-group{margin-bottom:15px;}
+    .input-group label{font-size:13px; font-weight:500; display:block; margin-bottom:5px;}
+    .input-group input, .input-group select{width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px;}
+    .input-group input:focus, .input-group select:focus{outline:none; border-color:#7c2d12; box-shadow:0 0 0 2px rgba(124,45,18,0.1);}
+    .primary-btn{padding:11px; background:#7c2d12; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500; margin-top:5px;}
+    .primary-btn:hover{background:#9a3412;}
+    .admin-btn{padding:11px; background:#1e293b; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500; margin-top:5px;}
+    .admin-btn:hover{background:#0f172a;}
+    .table-wrapper{overflow-x:auto; margin-top:15px;}
+    table{width:100%; border-collapse:collapse;}
+    table th, table td{padding:10px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:14px;}
+    table th{color:#7c2d12;}
+    .action-btn{padding:5px 10px; margin-right:5px; border:none; border-radius:5px; cursor:pointer; font-weight:500;}
+    .edit-btn{background:#facc15; color:#1e293b;}
+    .delete-btn{background:#ef4444; color:white;}
+    .chart-container{display:flex; gap:20px; flex-wrap:wrap; justify-content:space-between;}
+    .chart-box{flex:1 1 48%; background:white; padding:15px; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.05); text-align:center;}
+    .chart-box canvas{width:100% !important; height:300px !important;}
+    #winnerSection{font-size:16px; margin-bottom:15px;}
+    .footer{text-align:center; padding:20px; font-size:13px; color:#64748b;}
+    @media(max-width:768px){.chart-box{flex:1 1 100%;} .stats-container{flex-direction:column;}}
+  </style>
+</head>
+
+<body>
+<div class="university-header"><h1>Admin Panel</h1></div>
+
+<div class="main-wrapper">
+
+  <!-- Stats -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <h3 id="totalVotes">0</h3>
+      <p>Total Votes</p>
+    </div>
+  </div>
+
+  <!-- Winners -->
+  <div id="winnerSection" class="section"></div>
+
+  <!-- Candidate Section -->
+  <div class="section">
+    <h3>Manage Candidates</h3>
+    <div class="input-group"><label>Name</label><input type="text" id="cName"></div>
+    <div class="input-group"><label>Roll Number</label><input type="text" id="cRoll"></div>
+    <div class="input-group"><label>Department</label><input type="text" id="cDept"></div>
+    <div class="input-group"><label>Position</label>
+      <select id="cPosition">
+        <option value="Student Council">Student Council</option>
+        <option value="Student President">Student President</option>
+        <option value="Student Vice President">Student Vice President</option>
+        <option value="Student Representative">Student Representative</option>
+        <option value="Council Member">Council Member</option>
+      </select>
+    </div>
+    <div class="input-group"><label>Email</label><input type="email" id="cEmail"></div>
+    <button class="primary-btn" onclick="addCandidate()">Add Candidate</button>
+    <div class="table-wrapper">
+      <table id="candidatesTable">
+        <thead><tr><th>Name</th><th>Roll</th><th>Dept</th><th>Position</th><th>Email</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Election Section -->
+  <div class="section">
+    <h3>Manage Elections</h3>
+    <div class="input-group"><label>Candidate</label>
+      <select id="eCandidate"></select>
+    </div>
+    <div class="input-group"><label>Roll Number</label><input type="text" id="eRoll"></div>
+    <div class="input-group"><label>Department</label><input type="text" id="eDept"></div>
+    <div class="input-group"><label>Position</label><input type="text" id="ePosition"></div>
+    <div class="input-group"><label>Start Date & Time</label><input type="datetime-local" id="eStart"></div>
+    <div class="input-group"><label>End Date & Time</label><input type="datetime-local" id="eEnd"></div>
+    <button class="primary-btn" onclick="addElection()">Add Election</button>
+    <div class="table-wrapper">
+      <table id="electionTable">
+        <thead><tr><th>Candidate</th><th>Roll</th><th>Dept</th><th>Position</th><th>Start</th><th>End</th><th>Votes</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-container">
+    <div class="chart-box"><h4>Pie Chart</h4><canvas id="pieChart"></canvas></div>
+    <div class="chart-box"><h4>Bar Chart</h4><canvas id="barChart"></canvas></div>
+  </div>
+
+  <!-- Admin Buttons -->
+  <div class="section">
+    <button class="admin-btn" onclick="resetElection()">Reset Election</button>
+    <button class="admin-btn" onclick="logout()">Logout</button>
+  </div>
+
+</div>
+
+<div class="footer">&copy; 2026 University Election System</div>
+
+<script>
+  const { createClient } = supabase;
+  const supabaseClient = createClient(
+    "https://zszelitgpvagfdhcruxd.supabase.co",
+    "sb_publishable_9d2_0rVg3l6Goi143thMqA_R2Gb1R9M"
+  );
+
+  let candidates = [], elections = [], votesData = [], pieChart, barChart;
+
+  async function loadCandidates(){
+    try {
+      const { data, error } = await supabaseClient.from("candidates").select("*");
+      if(error) throw error;
+
+      candidates = data;
+      const tbody = document.querySelector("#candidatesTable tbody");
+      const eSelect = document.getElementById("eCandidate");
+      tbody.innerHTML = ""; eSelect.innerHTML = "<option value=''>Select Candidate</option>";
+
+      data.forEach(c => {
+        tbody.innerHTML += `<tr>
+          <td>${c.candidate_name}</td>
+          <td>${c.rollno}</td>
+          <td>${c.department}</td>
+          <td>${c.position}</td>
+          <td>${c.email}</td>
+          <td><button class="action-btn delete-btn" onclick="deleteCandidate('${c.id}')">Delete</button></td>
+        </tr>`;
+        eSelect.innerHTML += `<option value="${c.id}">${c.candidate_name}</option>`;
+      });
+    } catch(err) {
+      alert("Error loading candidates: " + err.message);
+    }
+  }
+
+  async function addCandidate(){
+    const name = cName.value.trim(),
+          roll = cRoll.value.trim(),
+          dept = cDept.value.trim(),
+          pos = cPosition.value,
+          email = cEmail.value.trim();
+
+    if(!name || !roll || !dept || !pos || !email){
+      alert("All fields required");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient.from("candidates").insert([
+        { candidate_name: name, rollno: roll, department: dept, position: pos, email }
+      ]);
+      if(error) throw error;
+
+      cName.value = cRoll.value = cDept.value = cEmail.value = "";
+      await loadCandidates();
+      await loadElections();
+      updateCharts();
+    } catch(err) {
+      alert("Failed to add candidate: " + err.message);
+    }
+  }
+
+  async function deleteCandidate(id){
+    if(!confirm("Are you sure you want to delete this candidate?")) return;
+    try {
+      const { error } = await supabaseClient.from("candidates").delete().eq("id", id);
+      if(error) throw error;
+      await loadCandidates();
+      await loadElections();
+    } catch(err) {
+      alert("Failed to delete candidate: " + err.message);
+    }
+  }
+
+  // === Election functions (unchanged) ===
+  async function loadElections(){
+    try {
+      const { data, error } = await supabaseClient.from("election").select("*");
+      if(error) throw error;
+
+      elections = data;
+      const tbody = document.querySelector("#electionTable tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(e => {
+        const candidateName = candidates.find(c => c.id === e.candidate_id)?.candidate_name || "Unknown";
+        tbody.innerHTML += `<tr>
+          <td>${candidateName}</td>
+          <td>${e.rollno}</td>
+          <td>${e.department}</td>
+          <td>${e.position}</td>
+          <td>${e.start_datetime ? new Date(e.start_datetime).toLocaleString() : ""}</td>
+          <td>${e.end_datetime ? new Date(e.end_datetime).toLocaleString() : ""}</td>
+          <td>${e.votes || 0}</td>
+          <td><button class="action-btn delete-btn" onclick="deleteElection('${e.id}')">Delete</button></td>
+        </tr>`;
+      });
+
+      updateCharts();
+    } catch(err) {
+      alert("Error loading elections: " + err.message);
+    }
+  }
+
+  async function addElection(){
+    const candidate_id = eCandidate.value,
+          roll = eRoll.value,
+          dept = eDept.value,
+          pos = ePosition.value,
+          start = eStart.value,
+          end = eEnd.value;
+
+    if(!candidate_id || !roll || !dept || !pos || !start || !end){ alert("All fields required"); return; }
+
+    try {
+      const { error } = await supabaseClient.from("election").insert([
+        { candidate_id, rollno: roll, department: dept, position: pos, start_datetime: start, end_datetime: end, votes: 0 }
+      ]);
+      if(error) throw error;
+
+      eRoll.value = eDept.value = ePosition.value = eStart.value = eEnd.value = "";
+      await loadElections();
+    } catch(err) {
+      alert("Failed to add election: " + err.message);
+    }
+  }
+
+  async function deleteElection(id){
+    if(!confirm("Are you sure you want to delete this election?")) return;
+    try {
+      const { error } = await supabaseClient.from("election").delete().eq("id", id);
+      if(error) throw error;
+      await loadElections();
+    } catch(err) {
+      alert("Failed to delete election: " + err.message);
+    }
+  }
+
+  async function updateCharts(){
+    try {
+      const { data:votes } = await supabaseClient.from("votes").select("*");
+      votesData = votes || [];
+      document.getElementById("totalVotes").innerText = votesData.length;
+
+      let voteCount = {};
+      votesData.forEach(v => {
+        const e = elections.find(el => el.id === v.election_id);
+        if(e) voteCount[e.candidate_id] = (voteCount[e.candidate_id] || 0) + 1;
+      });
+
+      let html = "<h3>🏆 Winners</h3>";
+      candidates.forEach(c => {
+        const count = voteCount[c.id] || 0;
+        html += `<p><b>${c.candidate_name}</b> → ${count} votes</p>`;
+      });
+      document.getElementById("winnerSection").innerHTML = html;
+
+      const labels = candidates.map(c => c.candidate_name);
+      const data = candidates.map(c => voteCount[c.id] || 0);
+
+      if(pieChart) pieChart.destroy();
+      if(barChart) barChart.destroy();
+
+      pieChart = new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: { labels, datasets: [{ data, backgroundColor:["#3b82f6","#10b981","#ef4444","#f59e0b","#8b5cf6","#ec4899"] }] },
+        options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+      });
+
+      barChart = new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: { labels, datasets:[{ label:"Votes", data, backgroundColor:"#3b82f6" }] },
+        options: { responsive:true, scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}} }
+      });
+    } catch(err) {
+      console.error("Error updating charts:", err.message);
+    }
+  }
+
+  async function resetElection() {
+    if(!confirm("Are you sure you want to reset the election? All votes will be deleted!")) return;
+    try {
+      await supabaseClient.from("votes").delete().not('id', 'is', null);
+      await supabaseClient.from("election").update({ votes: 0 }).not('id', 'is', null);
+      alert("All votes deleted and elections reset!");
+      await loadCandidates();
+      await loadElections();
+      updateCharts();
+    } catch(err) {
+      alert("Error resetting election: " + err.message);
+    }
+  }
+
+  function logout(){
+    sessionStorage.clear();
+    window.location="index.html";
+  }
+
+  window.onload = async ()=>{
+    await loadCandidates();
+    await loadElections();
+    updateCharts();
+  }
+</script>
+</body>
+</html>
