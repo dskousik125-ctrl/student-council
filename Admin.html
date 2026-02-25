@@ -328,22 +328,50 @@
     await loadElections();
     updateCharts();
   }
+
+
 async function downloadReport() {
   try {
     const { jsPDF } = window.jspdf;  // Correct initialization for jsPDF 2.x
-    
     const doc = new jsPDF('landscape', 'mm', 'a4');
     
-    doc.setFontSize(18);
+    // Title
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
     doc.text('Election Results Report', 14, 20);
 
-    // Add Election Table data
+    // Add Election Table data with better formatting
     const table = document.querySelector("#electionTable");
     const rows = table.querySelectorAll("tr");
     let yPos = 30;
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    
+    // Table header style
+    doc.setFillColor(124, 45, 18);  // Dark brown background for the header
+    doc.setTextColor(255, 255, 255);  // White text color
+    doc.rect(14, yPos - 5, 270, 10, 'F');  // Header background
+    doc.text("Candidate Name", 14, yPos);
+    doc.text("Roll Number", 50, yPos);
+    doc.text("Department", 80, yPos);
+    doc.text("Position", 110, yPos);
+    doc.text("Start Date", 150, yPos);
+    doc.text("End Date", 210, yPos);
+    doc.text("Votes", 260, yPos);
+    
+    yPos += 10;  // Add spacing below header
+
+    // Drawing a horizontal line after header
+    doc.setDrawColor(124, 45, 18);  // Line color matches the header background
+    doc.line(14, yPos, 285, yPos);
+    yPos += 5;
+
+    // Add table rows
+    doc.setTextColor(0, 0, 0);  // Reset text color to black
 
     rows.forEach((row, index) => {
-      if(index === 0) return; // Skip header row
+      if (index === 0) return; // Skip header row
       const cells = row.querySelectorAll("td");
       const candidate = cells[0].innerText;
       const roll = cells[1].innerText;
@@ -352,36 +380,44 @@ async function downloadReport() {
       const start = cells[4].innerText;
       const end = cells[5].innerText;
       const votes = cells[6].innerText;
+
+      // Alternate row color for readability
+      if (index % 2 === 1) {
+        doc.setFillColor(242, 242, 242);  // Light gray for alternating rows
+        doc.rect(14, yPos - 2, 270, 10, 'F');  // Background for row
+      }
       
-      doc.setFontSize(12);
-      doc.text(`${candidate} (${roll}) - ${department} - ${position}`, 14, yPos);
-      doc.text(`Start: ${start}`, 14, yPos + 7);
-      doc.text(`End: ${end}`, 14, yPos + 14);
-      doc.text(`Votes: ${votes}`, 14, yPos + 21);
-      
-      yPos += 30;
+      doc.text(candidate, 14, yPos);
+      doc.text(roll, 50, yPos);
+      doc.text(department, 80, yPos);
+      doc.text(position, 110, yPos);
+      doc.text(start, 150, yPos);
+      doc.text(end, 210, yPos);
+      doc.text(votes, 270, yPos);
+
+      yPos += 10;
+
+      if (yPos > 260) {  // Check if the page is filled
+        doc.addPage();
+        yPos = 50;  // Reset y-position for new page
+      }
     });
 
     // Add Pie Chart Image
-    yPos += 10;
-    const pieCanvas = document.getElementById('pieChart');  // Get the canvas element directly
+    const pieCanvas = document.getElementById('pieChart');
     if (pieCanvas) {
-      const pieDataUrl = pieCanvas.toDataURL("image/png");  // Use the canvas's toDataURL() method
-      doc.addImage(pieDataUrl, 'PNG', 14, yPos, 180, 100);
-      yPos += 110;
-    } else {
-      console.error("Pie chart canvas not found.");
+      const pieDataUrl = pieCanvas.toDataURL("image/png");
+      doc.addImage(pieDataUrl, 'PNG', 10, yPos, 100, 70);
     }
 
     // Add Bar Chart Image
-    const barCanvas = document.getElementById('barChart');  // Get the canvas element directly
+    const barCanvas = document.getElementById('barChart');
     if (barCanvas) {
-      const barDataUrl = barCanvas.toDataURL("image/png");  // Use the canvas's toDataURL() method
-      doc.addImage(barDataUrl, 'PNG', 14, yPos, 180, 100);
-    } else {
-      console.error("Bar chart canvas not found.");
+      const barDataUrl = barCanvas.toDataURL("image/png");
+      doc.addImage(barDataUrl, 'PNG', 150, yPos, 100, 70);
     }
 
+    // Finalize the PDF and download
     doc.save('election_report.pdf');
   } catch (error) {
     console.error("Error generating the report: ", error);

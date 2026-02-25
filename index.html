@@ -1,248 +1,238 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>University Election Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>University Election Portal</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* All the existing styles remain the same. */
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Poppins',sans-serif;
+    }
+    body{
+      background:#f8fafc;
+      color:#1e293b;
+    }
+    .university-header{
+      background:#0f172a;
+      color:white;
+      padding:20px 40px;
+    }
+    .header-inner{
+      max-width:1100px;
+      margin:auto;
+      display:flex;
+      align-items:center;
+    }
+    .logo-area{
+      display:flex;
+      align-items:center;
+      gap:15px;
+    }
+    .logo-icon{
+      font-size:30px;
+    }
+    .uni-name{
+      font-size:18px;
+      font-weight:600;
+    }
+    .uni-sub{
+      font-size:13px;
+      opacity:0.8;
+    }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    .hero-section{
+      text-align:center;
+      padding:50px 20px;
+      background:white;
+      border-bottom:1px solid #e2e8f0;
+    }
+    .hero-section h1{
+      font-size:32px;
+      font-family:Georgia, serif;
+      margin-bottom:10px;
+    }
+    .hero-section p{
+      color:#64748b;
+      font-size:15px;
+    }
 
-<style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:'Poppins',sans-serif;
-}
-body{
-  background:#f8fafc;
-  color:#1e293b;
-}
+    .main-wrapper{
+      display:flex;
+      justify-content:center;
+      padding:60px 20px;
+    }
+    .election-card{
+      width:420px;
+      background:white;
+      border-radius:8px;
+      padding:35px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.08);
+      border-top:4px solid #7c2d12;
+    }
 
-/* ================= HEADER ================= */
-.university-header{
-  background:#0f172a;
-  color:white;
-  padding:20px 40px;
-}
-.header-inner{
-  max-width:1100px;
-  margin:auto;
-  display:flex;
-  align-items:center;
-}
-.logo-area{
-  display:flex;
-  align-items:center;
-  gap:15px;
-}
-.logo-icon{
-  font-size:30px;
-}
-.uni-name{
-  font-size:18px;
-  font-weight:600;
-}
-.uni-sub{
-  font-size:13px;
-  opacity:0.8;
-}
+    .tabs{
+      display:flex;
+      margin-bottom:25px;
+      border-bottom:1px solid #e2e8f0;
+    }
+    .tab{
+      flex:1;
+      text-align:center;
+      padding:10px;
+      cursor:pointer;
+      font-size:14px;
+      color:#64748b;
+      transition:0.2s;
+    }
+    .tab.active{
+      color:#7c2d12;
+      border-bottom:2px solid #7c2d12;
+      font-weight:600;
+    }
 
-/* ================= HERO ================= */
-.hero-section{
-  text-align:center;
-  padding:50px 20px;
-  background:white;
-  border-bottom:1px solid #e2e8f0;
-}
-.hero-section h1{
-  font-size:32px;
-  font-family:Georgia, serif;
-  margin-bottom:10px;
-}
-.hero-section p{
-  color:#64748b;
-  font-size:15px;
-}
+    .form{
+      display:none;
+    }
+    .form.active{
+      display:block;
+    }
+    .input-group{
+      margin-bottom:18px;
+    }
+    .input-group label{
+      font-size:13px;
+      font-weight:500;
+      display:block;
+      margin-bottom:6px;
+    }
+    .input-group input{
+      width:100%;
+      padding:10px;
+      border:1px solid #cbd5e1;
+      border-radius:6px;
+      font-size:14px;
+      transition:0.3s;
+    }
+    .input-group input:focus{
+      outline:none;
+      border-color:#7c2d12;
+      box-shadow: 0 0 0 2px rgba(124,45,18,0.1);
+    }
 
-/* ================= MAIN ================= */
-.main-wrapper{
-  display:flex;
-  justify-content:center;
-  padding:60px 20px;
-}
-.election-card{
-  width:420px;
-  background:white;
-  border-radius:8px;
-  padding:35px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
-  border-top:4px solid #7c2d12;
-}
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 70%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #64748b;
+      font-size: 18px;
+      transition: color 0.2s;
+    }
+    .toggle-password:hover {
+      color: #7c2d12;
+    }
 
-/* ================= TABS ================= */
-.tabs{
-  display:flex;
-  margin-bottom:25px;
-  border-bottom:1px solid #e2e8f0;
-}
-.tab{
-  flex:1;
-  text-align:center;
-  padding:10px;
-  cursor:pointer;
-  font-size:14px;
-  color:#64748b;
-  transition:0.2s;
-}
-.tab.active{
-  color:#7c2d12;
-  border-bottom:2px solid #7c2d12;
-  font-weight:600;
-}
+    .primary-btn{
+      width:100%;
+      padding:11px;
+      background:#7c2d12;
+      color:white;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:500;
+      transition:0.3s;
+    }
+    .primary-btn:hover{
+      background:#9a3412;
+    }
+    .admin-btn{
+      width:100%;
+      padding:11px;
+      background:#1e293b;
+      color:white;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      font-weight:500;
+    }
+    .admin-btn:hover{
+      background:#0f172a;
+    }
 
-/* ================= FORMS ================= */
-.form{
-  display:none;
-}
-.form.active{
-  display:block;
-}
-.input-group{
-  margin-bottom:18px;
-}
-.input-group label{
-  font-size:13px;
-  font-weight:500;
-  display:block;
-  margin-bottom:6px;
-}
-.input-group input{
-  width:100%;
-  padding:10px;
-  border:1px solid #cbd5e1;
-  border-radius:6px;
-  font-size:14px;
-  transition:0.3s;
-}
-.input-group input:focus{
-  outline:none;
-  border-color:#7c2d12;
-  box-shadow: 0 0 0 2px rgba(124,45,18,0.1);
-}
+    .footer{
+      text-align:center;
+      padding:25px;
+      font-size:13px;
+      color:#64748b;
+      border-top:1px solid #e2e8f0;
+    }
 
-/* ================= PASSWORD TOGGLE ================= */
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 70%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #64748b;
-  font-size: 18px;
-  transition: color 0.2s;
-}
-.toggle-password:hover {
-  color: #7c2d12;
-}
+    .dialog-overlay{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(15,23,42,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      visibility:hidden;
+      opacity:0;
+      transition:0.3s;
+      z-index:9999;
+    }
+    .dialog-overlay.active{
+      visibility:visible;
+      opacity:1;
+    }
+    .dialog-box{
+      background:white;
+      padding:25px 30px;
+      border-radius:8px;
+      width:320px;
+      text-align:center;
+      box-shadow:0 15px 35px rgba(0,0,0,0.15);
+      animation:fadeInScale 0.2s ease;
+    }
+    .dialog-box div{
+      margin-bottom:18px;
+      font-size:14px;
+      color:#1e293b;
+    }
+    .dialog-btn{
+      padding:8px 18px;
+      background:#7c2d12;
+      color:white;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+    }
+    .dialog-btn:hover{
+      background:#9a3412;
+    }
+    @keyframes fadeInScale{
+      from{transform:scale(0.9);opacity:0;}
+      to{transform:scale(1);opacity:1;}
+    }
 
-/* ================= BUTTONS ================= */
-.primary-btn{
-  width:100%;
-  padding:11px;
-  background:#7c2d12;
-  color:white;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:500;
-  transition:0.3s;
-}
-.primary-btn:hover{
-  background:#9a3412;
-}
-.admin-btn{
-  width:100%;
-  padding:11px;
-  background:#1e293b;
-  color:white;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:500;
-}
-.admin-btn:hover{
-  background:#0f172a;
-}
-
-/* ================= FOOTER ================= */
-.footer{
-  text-align:center;
-  padding:25px;
-  font-size:13px;
-  color:#64748b;
-  border-top:1px solid #e2e8f0;
-}
-
-/* ================= DIALOG ================= */
-.dialog-overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(15,23,42,0.55);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  visibility:hidden;
-  opacity:0;
-  transition:0.3s;
-  z-index:9999;
-}
-.dialog-overlay.active{
-  visibility:visible;
-  opacity:1;
-}
-.dialog-box{
-  background:white;
-  padding:25px 30px;
-  border-radius:8px;
-  width:320px;
-  text-align:center;
-  box-shadow:0 15px 35px rgba(0,0,0,0.15);
-  animation:fadeInScale 0.2s ease;
-}
-.dialog-box div{
-  margin-bottom:18px;
-  font-size:14px;
-  color:#1e293b;
-}
-.dialog-btn{
-  padding:8px 18px;
-  background:#7c2d12;
-  color:white;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
-.dialog-btn:hover{
-  background:#9a3412;
-}
-@keyframes fadeInScale{
-  from{transform:scale(0.9);opacity:0;}
-  to{transform:scale(1);opacity:1;}
-}
-
-@media(max-width:480px){
-  .election-card{
-    width:100%;
-  }
-}
-</style>
+    @media(max-width:480px){
+      .election-card{
+        width:100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -346,17 +336,23 @@ body{
 </div>
 
 <script>
-const { createClient } = supabase;
-
+  const { createClient } = supabase;
 const supabaseClient = createClient(
   "https://zszelitgpvagfdhcruxd.supabase.co",
   "sb_publishable_9d2_0rVg3l6Goi143thMqA_R2Gb1R9M"
 );
+// Helper functions
+const emailPattern = /^[a-zA-Z0-9]{5,20}@kongunaducollege\.ac\.in$/;
+
+function isValidEmail(email) {
+  return emailPattern.test(email);
+}
 
 function showDialog(message){
   document.getElementById("dialogMessage").innerText = message;
   document.getElementById("customDialog").classList.add("active");
 }
+
 function closeDialog(){
   document.getElementById("customDialog").classList.remove("active");
 }
@@ -381,6 +377,7 @@ function togglePassword(inputId, icon){
   }
 }
 
+// Register Voter
 async function registerVoter() {
   const name = rName.value.trim();
   const roll = rRoll.value.trim();
@@ -393,57 +390,83 @@ async function registerVoter() {
     showDialog("Please fill all fields");
     return;
   }
+
   if (password !== confirmPassword) {
     showDialog("Passwords do not match");
     return;
   }
+
   if (password.length < 6) {
     showDialog("Password must be at least 6 characters");
     return;
   }
 
+  // Validate email domain
+  if (!isValidEmail(email)) {
+    showDialog("Please use a valid email address associated with Kongunadu Arts and Science College Domain.");
+    return;
+  }
+
+  // Store the plain text password in the database
   const { error } = await supabaseClient.from("voters").insert([
     { name, rollno: roll, department: dept, email, password }
   ]);
 
-  if (error) { showDialog("Registration failed: "+error.message); return; }
+  if (error) {
+    showDialog("Registration failed: " + error.message);
+    return;
+  }
 
   showDialog("Registration Successful!");
   showForm("voterLogin", document.querySelector('.tab'));
 }
 
+// Voter Login
 async function voterLogin() {
   const email = vEmail.value.trim();
   const password = vPassword.value;
 
-  const { data } = await supabaseClient
+  // Validate email domain
+  if (!isValidEmail(email)) {
+    showDialog("Please use a valid email address with @kongunaducollege.ac.in domain.");
+    return;
+  }
+
+  const { data, error } = await supabaseClient
     .from("voters")
     .select("*")
     .eq("email", email)
     .eq("password", password)
     .single();
 
-  if (!data) { showDialog("Invalid Voter Login"); return; }
+  if (error || !data) {
+    showDialog("Invalid Voter Login");
+    return;
+  }
 
   sessionStorage.setItem("user", JSON.stringify(data));
-  window.location="Voter.html";
+  window.location = "Voter.html";
 }
 
+// Admin Login (unchanged)
 async function adminLogin() {
   const email = aEmail.value.trim();
   const password = aPassword.value;
 
-  const { data } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("admins")
     .select("*")
     .eq("email", email)
     .eq("password", password)
     .single();
 
-  if (!data) { showDialog("Invalid Admin Login"); return; }
+  if (!data) {
+    showDialog("Invalid Admin Login");
+    return;
+  }
 
   sessionStorage.setItem("admin", JSON.stringify(data));
-  window.location="Admin.html";
+  window.location = "Admin.html";
 }
 </script>
 
