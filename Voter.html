@@ -1,30 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Voter Portal - University Election</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*{ margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif;}
-body{ background:#f8fafc; color:#1e293b;}
-.header{ background:#0f172a; color:white; padding:20px 40px; display:flex; justify-content:space-between; align-items:center;}
-.header h2{ font-weight:600;}
-.header button{ padding:8px 15px; border:none; border-radius:6px; cursor:pointer; background:#7c2d12; color:white; font-weight:500;}
-.header button:hover{ background:#9a3412;}
-.main-wrapper{ max-width:900px; margin:40px auto; padding:0 20px; display:flex; flex-direction:column; gap:25px;}
-.card{ background:white; padding:25px; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.08);}
-.card h3{ margin-bottom:15px; color:#7c2d12;}
-.position-section{ margin-bottom:25px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;}
-.position-section h4{ margin-bottom:10px;}
-.election-option{ margin-bottom:8px;}
-.vote-btn{ padding:10px 20px; background:#7c2d12; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500;}
-.vote-btn:hover{ background:#9a3412;}
-.voted-message{color:#22c55e; font-weight:500; margin-top:15px;}
-.disabled-message{color:#ef4444; font-weight:500; margin-top:15px;}
-.profile-card{ background:#e2e8f0; padding:15px; border-radius:8px; margin-bottom:15px;}
-.profile-card h4{ margin-bottom:10px; color:#7c2d12;}
-.profile-item{ margin-bottom:8px; font-size:14px;}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+body { background: #f8fafc; color: #1e293b; }
+.header { background: #0f172a; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+.header h2 { font-weight: 600; }
+.header button { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; background: #7c2d12; color: white; font-weight: 500; }
+.header button:hover { background: #9a3412; }
+.main-wrapper { max-width: 900px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 25px; }
+.card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+.card h3 { margin-bottom: 15px; color: #7c2d12; }
+.position-section { margin-bottom: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+.position-section h4 { margin-bottom: 10px; }
+.election-option { margin-bottom: 8px; }
+.vote-btn { padding: 10px 20px; background: #7c2d12; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+.vote-btn:hover { background: #9a3412; }
+.voted-message { color: #22c55e; font-weight: 500; margin-top: 15px; }
+.disabled-message { color: #ef4444; font-weight: 500; margin-top: 15px; }
+.profile-card { background: #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+.profile-card h4 { margin-bottom: 10px; color: #7c2d12; }
+.profile-item { margin-bottom: 8px; font-size: 14px; }
+
+/* ================= DIALOG ================= */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15,23,42,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+  z-index: 9999;
+}
+.dialog-overlay.active {
+  visibility: visible;
+  opacity: 1;
+}
+.dialog-box {
+  background: white;
+  padding: 25px 30px;
+  border-radius: 8px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+  animation: fadeInScale 0.2s ease;
+}
+.dialog-box div {
+  margin-bottom: 18px;
+  font-size: 14px;
+  color: #1e293b;
+}
+.dialog-btn {
+  padding: 8px 18px;
+  background: #7c2d12;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.dialog-btn:hover {
+  background: #9a3412;
+}
+@keyframes fadeInScale {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
 </style>
 </head>
 <body>
@@ -57,6 +107,14 @@ body{ background:#f8fafc; color:#1e293b;}
   </div>
 </div>
 
+<!-- DIALOG -->
+<div id="customDialog" class="dialog-overlay">
+  <div class="dialog-box">
+    <div id="dialogMessage"></div>
+    <button onclick="closeDialog()" class="dialog-btn">OK</button>
+  </div>
+</div>
+
 <script>
 const { createClient } = supabase;
 const supabaseClient = createClient(
@@ -69,7 +127,7 @@ let voter = null;
 // ===== Auth check and display profile =====
 window.onload = async () => {
   const userData = sessionStorage.getItem("user");
-  if(!userData){ window.location="index.html"; return; }
+  if (!userData) { window.location = "index.html"; return; }
   voter = JSON.parse(userData);
 
   // Populate profile
@@ -81,23 +139,23 @@ window.onload = async () => {
   await loadBallot();
 }
 
-function logout(){
+function logout() {
   sessionStorage.removeItem("user");
-  window.location="index.html";
+  window.location = "index.html";
 }
 
 // ===== Load elections grouped by position =====
-async function loadBallot(){
+async function loadBallot() {
   const { data: elections, error } = await supabaseClient.from("election").select("*");
-  if(error){ alert(error.message); return; }
+  if (error) { showDialog(error.message); return; }
 
   const { data: votes } = await supabaseClient.from("votes").select("*").eq("voter_id", voter.id);
 
   const now = new Date();
   const votedPositions = {};
-  for(const v of votes){
+  for (const v of votes) {
     const election = elections.find(e => e.id === v.election_id);
-    if(election) votedPositions[election.position] = v.election_id;
+    if (election) votedPositions[election.position] = v.election_id;
   }
 
   const container = document.getElementById("positionsContainer");
@@ -106,62 +164,85 @@ async function loadBallot(){
   const positions = [...new Set(elections.map(e => e.position))];
   let votingAllowed = false;
 
-  for(const pos of positions){
+  for (const pos of positions) {
     const section = document.createElement("div");
     section.className = "position-section";
     section.innerHTML = `<h4>${pos}</h4>`;
 
     const electionsForPos = elections.filter(e => e.position === pos);
-    electionsForPos.forEach(e=>{
+    let displayedCandidates = new Set(); // To keep track of candidates already displayed
+
+    for (const e of electionsForPos) {
       let disabled = false;
-      if(now < new Date(e.start_datetime) || now > new Date(e.end_datetime)) disabled = true;
-      if(votedPositions[pos]) disabled = true;
+      if (now < new Date(e.start_datetime) || now > new Date(e.end_datetime)) disabled = true;
+      if (votedPositions[pos]) disabled = true;
 
-      if(!disabled) votingAllowed = true;
+      if (!disabled) votingAllowed = true;
 
-      const div = document.createElement("div");
-      div.className = "election-option";
-      div.innerHTML = `<label>
-        <input type="radio" name="${pos}" value="${e.id}" ${disabled ? "disabled" : ""}>
-        ${e.rollno} (${e.department}) ${votedPositions[pos] === e.id ? "✅ VOTED" : ""}
-      </label>`;
-      section.appendChild(div);
-    });
+      // Fetch candidates for the position
+      const { data: candidates, error: candidateError } = await supabaseClient
+        .from("candidates")
+        .select("*")
+        .eq("position", e.position); // Get all candidates for the position
+
+      if (candidateError) {
+        showDialog("Error fetching candidate data");
+        return;
+      }
+
+      if (candidates.length === 0) {
+        candidates = [{ candidate_name: "Unknown Candidate" }];
+      }
+
+      // Add candidates to the election option, ensuring no duplicate listings
+      candidates.forEach(candidate => {
+        if (!displayedCandidates.has(candidate.id)) { // Check if candidate already displayed
+          displayedCandidates.add(candidate.id);
+          const div = document.createElement("div");
+          div.className = "election-option";
+          div.innerHTML = `<label>
+            <input type="radio" name="${pos}" value="${e.id}" ${disabled ? "disabled" : ""}>
+            ${candidate.candidate_name} (${candidate.rollno}) - ${candidate.department} ${votedPositions[pos] === e.id ? "✅ VOTED" : ""}
+          </label>`;
+          section.appendChild(div);
+        }
+      });
+    }
 
     container.appendChild(section);
   }
 
-  if(Object.keys(votedPositions).length > 0){
-    document.getElementById("voteMessage").innerText="You have already voted in some positions.";
+  if (Object.keys(votedPositions).length > 0) {
+    document.getElementById("voteMessage").innerText = "You have already voted in some positions.";
   }
 
-  if(!votingAllowed){
-    document.getElementById("disabledMessage").innerText="Voting is currently closed for all positions.";
+  if (!votingAllowed) {
+    document.getElementById("disabledMessage").innerText = "Voting is currently closed for all positions.";
     document.querySelector(".vote-btn").disabled = true;
   }
 }
 
 // ===== Submit vote =====
-document.getElementById("ballotForm").addEventListener("submit", async (e)=>{
+document.getElementById("ballotForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
   const formData = new FormData(form);
   const selectedVotes = [];
 
-  for(const [position, electionId] of formData.entries()){
+  for (const [position, electionId] of formData.entries()) {
     selectedVotes.push(electionId);
   }
 
-  if(selectedVotes.length === 0){ alert("Select at least one election"); return; }
+  if (selectedVotes.length === 0) { showDialog("Select at least one election"); return; }
 
-  for(const electionId of selectedVotes){
+  for (const electionId of selectedVotes) {
     // Increment votes
     const { data: election } = await supabaseClient.from("election").select("*").eq("id", electionId).single();
-    if(!election) continue;
+    if (!election) continue;
 
     const now = new Date();
-    if(now < new Date(election.start_datetime) || now > new Date(election.end_datetime)){
-      alert(`Voting closed for ${election.position}`);
+    if (now < new Date(election.start_datetime) || now > new Date(election.end_datetime)) {
+      showDialog(`Voting closed for ${election.position}`);
       continue;
     }
 
@@ -171,9 +252,19 @@ document.getElementById("ballotForm").addEventListener("submit", async (e)=>{
     await supabaseClient.from("votes").insert([{ election_id: electionId, voter_id: voter.id }]);
   }
 
-  alert("Your vote has been recorded!");
+  showDialog("Your vote has been recorded!");
   await loadBallot();
 });
+
+// ===== Dialog functions =====
+function showDialog(message) {
+  document.getElementById("dialogMessage").innerText = message;
+  document.getElementById("customDialog").classList.add("active");
+}
+
+function closeDialog() {
+  document.getElementById("customDialog").classList.remove("active");
+}
 </script>
 
 </body>

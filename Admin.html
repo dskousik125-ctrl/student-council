@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
   <style>
     *{margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif;}
     body{background:#f8fafc; color:#1e293b;}
@@ -16,21 +19,26 @@
     .stat-card h3{font-size:28px; color:#7c2d12;}
     .stat-card p{font-size:14px; color:#64748b;}
     .section{background:white; border-radius:8px; padding:25px; box-shadow:0 8px 20px rgba(0,0,0,0.05);}
+
     .input-group{margin-bottom:15px;}
     .input-group label{font-size:13px; font-weight:500; display:block; margin-bottom:5px;}
     .input-group input, .input-group select{width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px;}
     .input-group input:focus, .input-group select:focus{outline:none; border-color:#7c2d12; box-shadow:0 0 0 2px rgba(124,45,18,0.1);}
+
     .primary-btn{padding:11px; background:#7c2d12; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500; margin-top:5px;}
     .primary-btn:hover{background:#9a3412;}
     .admin-btn{padding:11px; background:#1e293b; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500; margin-top:5px;}
     .admin-btn:hover{background:#0f172a;}
+
     .table-wrapper{overflow-x:auto; margin-top:15px;}
     table{width:100%; border-collapse:collapse;}
     table th, table td{padding:10px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:14px;}
     table th{color:#7c2d12;}
+
     .action-btn{padding:5px 10px; margin-right:5px; border:none; border-radius:5px; cursor:pointer; font-weight:500;}
     .edit-btn{background:#facc15; color:#1e293b;}
     .delete-btn{background:#ef4444; color:white;}
+
     .chart-container{display:flex; gap:20px; flex-wrap:wrap; justify-content:space-between;}
     .chart-box{flex:1 1 48%; background:white; padding:15px; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.05); text-align:center;}
     .chart-box canvas{width:100% !important; height:300px !important;}
@@ -110,6 +118,7 @@
   <!-- Admin Buttons -->
   <div class="section">
     <button class="admin-btn" onclick="resetElection()">Reset Election</button>
+    <button class="admin-btn" onclick="downloadReport()">Download Report</button>
     <button class="admin-btn" onclick="logout()">Logout</button>
   </div>
 
@@ -191,7 +200,6 @@
     }
   }
 
-  // === Election functions (unchanged) ===
   async function loadElections(){
     try {
       const { data, error } = await supabaseClient.from("election").select("*");
@@ -320,6 +328,67 @@
     await loadElections();
     updateCharts();
   }
+async function downloadReport() {
+  try {
+    const { jsPDF } = window.jspdf;  // Correct initialization for jsPDF 2.x
+    
+    const doc = new jsPDF('landscape', 'mm', 'a4');
+    
+    doc.setFontSize(18);
+    doc.text('Election Results Report', 14, 20);
+
+    // Add Election Table data
+    const table = document.querySelector("#electionTable");
+    const rows = table.querySelectorAll("tr");
+    let yPos = 30;
+
+    rows.forEach((row, index) => {
+      if(index === 0) return; // Skip header row
+      const cells = row.querySelectorAll("td");
+      const candidate = cells[0].innerText;
+      const roll = cells[1].innerText;
+      const department = cells[2].innerText;
+      const position = cells[3].innerText;
+      const start = cells[4].innerText;
+      const end = cells[5].innerText;
+      const votes = cells[6].innerText;
+      
+      doc.setFontSize(12);
+      doc.text(`${candidate} (${roll}) - ${department} - ${position}`, 14, yPos);
+      doc.text(`Start: ${start}`, 14, yPos + 7);
+      doc.text(`End: ${end}`, 14, yPos + 14);
+      doc.text(`Votes: ${votes}`, 14, yPos + 21);
+      
+      yPos += 30;
+    });
+
+    // Add Pie Chart Image
+    yPos += 10;
+    const pieCanvas = document.getElementById('pieChart');  // Get the canvas element directly
+    if (pieCanvas) {
+      const pieDataUrl = pieCanvas.toDataURL("image/png");  // Use the canvas's toDataURL() method
+      doc.addImage(pieDataUrl, 'PNG', 14, yPos, 180, 100);
+      yPos += 110;
+    } else {
+      console.error("Pie chart canvas not found.");
+    }
+
+    // Add Bar Chart Image
+    const barCanvas = document.getElementById('barChart');  // Get the canvas element directly
+    if (barCanvas) {
+      const barDataUrl = barCanvas.toDataURL("image/png");  // Use the canvas's toDataURL() method
+      doc.addImage(barDataUrl, 'PNG', 14, yPos, 180, 100);
+    } else {
+      console.error("Bar chart canvas not found.");
+    }
+
+    doc.save('election_report.pdf');
+  } catch (error) {
+    console.error("Error generating the report: ", error);
+    alert("An error occurred while generating the report.");
+  }
+}
 </script>
+
 </body>
 </html>

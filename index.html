@@ -4,13 +4,10 @@
 <meta charset="UTF-8">
 <title>University Election Portal</title>
 
-<!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-<!-- Font Awesome for eye icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
 
 <style>
@@ -190,6 +187,56 @@ body{
   border-top:1px solid #e2e8f0;
 }
 
+/* ================= DIALOG ================= */
+.dialog-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(15,23,42,0.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  visibility:hidden;
+  opacity:0;
+  transition:0.3s;
+  z-index:9999;
+}
+.dialog-overlay.active{
+  visibility:visible;
+  opacity:1;
+}
+.dialog-box{
+  background:white;
+  padding:25px 30px;
+  border-radius:8px;
+  width:320px;
+  text-align:center;
+  box-shadow:0 15px 35px rgba(0,0,0,0.15);
+  animation:fadeInScale 0.2s ease;
+}
+.dialog-box div{
+  margin-bottom:18px;
+  font-size:14px;
+  color:#1e293b;
+}
+.dialog-btn{
+  padding:8px 18px;
+  background:#7c2d12;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+.dialog-btn:hover{
+  background:#9a3412;
+}
+@keyframes fadeInScale{
+  from{transform:scale(0.9);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+
 @media(max-width:480px){
   .election-card{
     width:100%;
@@ -200,7 +247,6 @@ body{
 
 <body>
 
-<!-- ================= HEADER ================= -->
 <header class="university-header">
   <div class="header-inner">
     <div class="logo-area">
@@ -213,13 +259,11 @@ body{
   </div>
 </header>
 
-<!-- ================= HERO ================= -->
 <section class="hero-section">
   <h1>Official Voting Portal</h1>
   <p>Ensuring Integrity • Transparency • Student Representation</p>
 </section>
 
-<!-- ================= LOGIN CARD ================= -->
 <div class="main-wrapper">
   <div class="election-card">
 
@@ -229,7 +273,6 @@ body{
       <div class="tab" onclick="showForm('adminLogin',this)">Admin</div>
     </div>
 
-    <!-- Voter Login -->
     <div id="voterLogin" class="form active">
       <div class="input-group">
         <label>Email Address</label>
@@ -243,7 +286,6 @@ body{
       <button class="primary-btn" onclick="voterLogin()">Login as Voter</button>
     </div>
 
-    <!-- Register -->
     <div id="registerForm" class="form">
       <div class="input-group">
         <label>Full Name</label>
@@ -274,7 +316,6 @@ body{
       <button class="primary-btn" onclick="registerVoter()">Register</button>
     </div>
 
-    <!-- Admin -->
     <div id="adminLogin" class="form">
       <div class="input-group">
         <label>Admin Email</label>
@@ -291,13 +332,19 @@ body{
   </div>
 </div>
 
-<!-- ================= FOOTER ================= -->
 <footer class="footer">
   © 2026 College Election Commission | All Rights Reserved <br>
   🔐 Secure Digital Voting System
 </footer>
 
-<!-- ================= SUPABASE SCRIPT ================= -->
+<!-- DIALOG -->
+<div id="customDialog" class="dialog-overlay">
+  <div class="dialog-box">
+    <div id="dialogMessage"></div>
+    <button onclick="closeDialog()" class="dialog-btn">OK</button>
+  </div>
+</div>
+
 <script>
 const { createClient } = supabase;
 
@@ -306,7 +353,14 @@ const supabaseClient = createClient(
   "sb_publishable_9d2_0rVg3l6Goi143thMqA_R2Gb1R9M"
 );
 
-// Tab switching
+function showDialog(message){
+  document.getElementById("dialogMessage").innerText = message;
+  document.getElementById("customDialog").classList.add("active");
+}
+function closeDialog(){
+  document.getElementById("customDialog").classList.remove("active");
+}
+
 function showForm(id,el){
   document.querySelectorAll('.form').forEach(f=>f.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -314,7 +368,6 @@ function showForm(id,el){
   el.classList.add('active');
 }
 
-// Toggle password visibility with Font Awesome
 function togglePassword(inputId, icon){
   const input = document.getElementById(inputId);
   if(input.type === "password"){
@@ -328,7 +381,6 @@ function togglePassword(inputId, icon){
   }
 }
 
-// Voter Registration
 async function registerVoter() {
   const name = rName.value.trim();
   const roll = rRoll.value.trim();
@@ -338,15 +390,15 @@ async function registerVoter() {
   const confirmPassword = rConfirmPassword.value;
 
   if (!name || !roll || !dept || !email || !password || !confirmPassword) {
-    alert("Please fill all fields");
+    showDialog("Please fill all fields");
     return;
   }
   if (password !== confirmPassword) {
-    alert("Passwords do not match");
+    showDialog("Passwords do not match");
     return;
   }
   if (password.length < 6) {
-    alert("Password must be at least 6 characters");
+    showDialog("Password must be at least 6 characters");
     return;
   }
 
@@ -354,13 +406,12 @@ async function registerVoter() {
     { name, rollno: roll, department: dept, email, password }
   ]);
 
-  if (error) { alert("Registration failed: "+error.message); return; }
+  if (error) { showDialog("Registration failed: "+error.message); return; }
 
-  alert("Registration Successful!");
+  showDialog("Registration Successful!");
   showForm("voterLogin", document.querySelector('.tab'));
 }
 
-// Voter Login
 async function voterLogin() {
   const email = vEmail.value.trim();
   const password = vPassword.value;
@@ -372,13 +423,12 @@ async function voterLogin() {
     .eq("password", password)
     .single();
 
-  if (!data) { alert("Invalid Voter Login"); return; }
+  if (!data) { showDialog("Invalid Voter Login"); return; }
 
   sessionStorage.setItem("user", JSON.stringify(data));
   window.location="Voter.html";
 }
 
-// Admin Login
 async function adminLogin() {
   const email = aEmail.value.trim();
   const password = aPassword.value;
@@ -390,7 +440,7 @@ async function adminLogin() {
     .eq("password", password)
     .single();
 
-  if (!data) { alert("Invalid Admin Login"); return; }
+  if (!data) { showDialog("Invalid Admin Login"); return; }
 
   sessionStorage.setItem("admin", JSON.stringify(data));
   window.location="Admin.html";
