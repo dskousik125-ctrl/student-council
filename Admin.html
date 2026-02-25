@@ -329,8 +329,8 @@
     updateCharts();
   }
 
-
 async function downloadReport() {
+  let yPos;
   try {
     const { jsPDF } = window.jspdf;  // Correct initialization for jsPDF 2.x
     const doc = new jsPDF('landscape', 'mm', 'a4');
@@ -340,10 +340,50 @@ async function downloadReport() {
     doc.setFont('helvetica', 'bold');
     doc.text('Election Results Report', 14, 20);
 
+    // Find the Winner Candidate based on highest votes
+    let winner = null;
+    let highestVotes = 0;
+
+    const voteCount = {};
+    votesData.forEach(v => {
+      const election = elections.find(e => e.id === v.election_id);
+      if (election) {
+        voteCount[election.candidate_id] = (voteCount[election.candidate_id] || 0) + 1;
+      }
+    });
+
+    // Get the candidate with the highest votes
+    candidates.forEach(c => {
+      const count = voteCount[c.id] || 0;
+      if (count > highestVotes) {
+        highestVotes = count;
+        winner = c;
+      }
+    });
+
+    // Display winner in a good UI format in the PDF
+    if (winner) {
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor( 0, 0,240);
+      doc.text('Winner: ' + winner.candidate_name, 14, 30);
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Position: ' + winner.position, 14, 40);
+      doc.text('Votes: ' + highestVotes, 14, 50);
+      doc.text('Department: ' + winner.department, 14, 60);
+      doc.text('Roll Number: ' + winner.rollno, 14, 70);
+
+      // Add a horizontal line after the winner section
+      doc.setDrawColor(124, 45, 18); // Line color
+      doc.line(14, 75, 285, 75); // Line from x=14 to x=285
+      yPos = 80;  // Start y position after the winner section
+    }
+
     // Add Election Table data with better formatting
     const table = document.querySelector("#electionTable");
     const rows = table.querySelectorAll("tr");
-    let yPos = 30;
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
